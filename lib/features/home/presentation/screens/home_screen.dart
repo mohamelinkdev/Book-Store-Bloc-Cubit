@@ -1,5 +1,6 @@
-import 'package:book_store/core/theme/theme_mode_provider.dart';
+import 'package:book_store/core/theme/theme_mode_cubit.dart';
 import 'package:book_store/core/localization/locale_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:book_store/features/books/presentation/screens/bookmark_screen.dart';
 import 'package:book_store/features/books/presentation/screens/books_list_screen.dart';
 import 'package:book_store/features/images_picker/presentation/screens/image_history_screen.dart';
@@ -20,7 +21,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _pages = const [BooksScreen(), BookMarkScreen(), ImageHistoryScreen()];
 
   void _toggleThemeMode() {
-    ref.read(themeModeProvider.notifier).toggle();
+    context.read<ThemeModeCubit>().toggle();
   }
 
   IconData _themeIcon(ThemeMode mode) {
@@ -33,7 +34,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = ref.watch(themeModeProvider);
+    final themeMode = context.watch<ThemeModeCubit>().state;
     final currentLocale = ref.watch(localeProvider);
     final l10n = AppLocalizations.of(context)!;
 
