@@ -1,7 +1,7 @@
 import 'package:book_store/core/constants/app_assets.dart';
 import 'package:book_store/core/constants/values_manager.dart';
 import 'package:book_store/features/auth/data/auth_repository.dart';
-import 'package:book_store/features/auth/presentation/view_model/login_cubit.dart';
+import 'package:book_store/features/auth/presentation/view_model/login_viewmodel.dart';
 import 'package:book_store/features/auth/presentation/widgets/login_form.dart';
 import 'package:book_store/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +17,7 @@ class LoginScreen extends StatelessWidget {
       body: RepositoryProvider(
         create: (context) => AuthRepository(),
         child: BlocProvider(
-          create: (context) => LoginCubit(context.read<AuthRepository>()),
+          create: (context) => LoginViewModel(context.read<AuthRepository>()),
           child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(AppPadding.p20),

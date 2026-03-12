@@ -7,12 +7,12 @@ import 'package:book_store/features/books/presentation/view_model/book_list_even
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'dart:async';
-import 'package:book_store/core/localization/locale_cubit.dart';
+import 'package:book_store/core/localization/locale_view_model.dart';
 import 'package:flutter/material.dart';
 
 class BookListViewModel extends Bloc<BookListEvent, BooksListState> {
   final BooksRepositoryBase _repository;
-  final LocaleCubit _localeCubit;
+  final LocaleViewModel _localeCubit;
   late final StreamSubscription<Locale> _localeSubscription;
 
   int _page = 0;
