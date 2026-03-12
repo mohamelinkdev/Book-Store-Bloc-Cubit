@@ -3,10 +3,10 @@ import 'package:book_store/features/books/data/repository/books_repository.dart'
 import 'package:book_store/features/books/presentation/view_model/books_book_marked_event.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class BooksBookMarkedCubit extends Bloc<BooksBookMarkedEvent, List<Book>> {
+class BooksBookMarkedViewModel extends Bloc<BooksBookMarkedEvent, List<Book>> {
   final BooksRepositoryBase _repository;
 
-  BooksBookMarkedCubit(this._repository) : super([]) {
+  BooksBookMarkedViewModel(this._repository) : super([]) {
     on<LoadBookmarksEvent>(_onLoadBookmarks);
     on<ToggleBookmarkEvent>(_onToggle);
 

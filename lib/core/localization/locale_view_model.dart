@@ -4,10 +4,10 @@ import 'package:hive/hive.dart';
 import 'package:book_store/core/constants/hive_constants.dart';
 import 'package:book_store/core/localization/locale_event.dart';
 
-class LocaleCubit extends Bloc<LocaleEvent, Locale> {
+class LocaleViewModel extends Bloc<LocaleEvent, Locale> {
   static const _localeKey = 'app_locale';
 
-  LocaleCubit() : super(_loadInitialLocale()) {
+  LocaleViewModel() : super(_loadInitialLocale()) {
     on<ToggleLocaleEvent>(_onToggle);
     on<SetLocaleEvent>(_onSetLocale);
   }

@@ -6,7 +6,7 @@ import 'package:book_store/features/books/data/model/book.dart';
 import 'package:book_store/features/books/presentation/models/book_list_state.dart';
 import 'package:book_store/features/books/presentation/view_model/book_list_viewmodel.dart';
 import 'package:book_store/features/books/presentation/view_model/book_list_event.dart';
-import 'package:book_store/features/books/presentation/view_model/books_book_marked_cubit.dart';
+import 'package:book_store/features/books/presentation/view_model/books_book_marked_view_model.dart';
 import 'package:book_store/features/books/presentation/view_model/books_book_marked_event.dart';
 import 'package:book_store/features/books/presentation/screens/book_details.dart';
 import 'package:book_store/features/books/presentation/widgets/books_list_view.dart';
@@ -57,7 +57,7 @@ class _BooksScreenState extends State<BooksScreen> {
         Expanded(
           child: BlocBuilder<BookListViewModel, BooksListState>(
             builder: (context, booksState) {
-              return BlocBuilder<BooksBookMarkedCubit, List<Book>>(
+              return BlocBuilder<BooksBookMarkedViewModel, List<Book>>(
                 builder: (context, markedBooks) {
                   return _buildContent(booksState, markedBooks, l10n);
                 },
@@ -100,7 +100,7 @@ class _BooksScreenState extends State<BooksScreen> {
             ? () => context.read<BookListViewModel>().add(LoadBooksEvent())
             : null,
         onBookmarkTap: (book) =>
-            context.read<BooksBookMarkedCubit>().add(ToggleBookmarkEvent(book)),
+            context.read<BooksBookMarkedViewModel>().add(ToggleBookmarkEvent(book)),
         isBookmarked: (id) => markedBooks.any((b) => b.id == id),
         onBookTap: (book) {
           Navigator.push(

@@ -4,10 +4,10 @@ import 'package:hive/hive.dart';
 import 'package:book_store/core/constants/hive_constants.dart';
 import 'package:book_store/core/theme/theme_mode_event.dart';
 
-class ThemeModeCubit extends Bloc<ThemeModeEvent, ThemeMode> {
+class ThemeModeViewModel extends Bloc<ThemeModeEvent, ThemeMode> {
   static const _themeKey = 'app_theme_mode';
 
-  ThemeModeCubit() : super(_loadInitialTheme()) {
+  ThemeModeViewModel() : super(_loadInitialTheme()) {
     on<ToggleThemeEvent>(_onToggle);
   }
 

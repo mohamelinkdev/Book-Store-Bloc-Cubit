@@ -3,7 +3,7 @@ import 'package:book_store/core/utils/app_loader.dart';
 import 'package:book_store/core/utils/app_validator.dart';
 import 'package:book_store/core/widgets/app_button.dart';
 import 'package:book_store/core/widgets/app_text_form_field.dart';
-import 'package:book_store/features/auth/presentation/view_model/login_cubit.dart';
+import 'package:book_store/features/auth/presentation/view_model/login_viewmodel.dart';
 import 'package:book_store/features/auth/presentation/view_model/login_event.dart';
 import 'package:book_store/features/auth/presentation/models/login_state.dart';
 import 'package:book_store/features/auth/presentation/screens/register_screen.dart';
@@ -35,7 +35,7 @@ class _LoginFormState extends State<LoginForm> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     
-    return BlocConsumer<LoginCubit, LoginState>(
+    return BlocConsumer<LoginViewModel, LoginState>(
       listenWhen: (previous, current) {
         return previous.isLoading != current.isLoading || 
                current.isSuccess || 
@@ -101,7 +101,7 @@ class _LoginFormState extends State<LoginForm> {
                 text: l10n.login,
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    context.read<LoginCubit>().add(LoginSubmittedEvent(
+                    context.read<LoginViewModel>().add(LoginSubmittedEvent(
                           email: emailController.text.trim(),
                           password: passwordController.text.trim(),
                         ));

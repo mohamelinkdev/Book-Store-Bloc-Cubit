@@ -4,10 +4,10 @@ import 'package:book_store/features/images_picker/presentation/model/upload_stat
 import 'package:book_store/features/images_picker/presentation/view_models/upload_event.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class UploadCubit extends Bloc<UploadEvent, UploadState> {
+class UploadViewModel extends Bloc<UploadEvent, UploadState> {
   final UploadMultipleImagesUseCase _uploadMultipleImagesUseCase;
 
-  UploadCubit(this._uploadMultipleImagesUseCase) : super(UploadState()) {
+  UploadViewModel(this._uploadMultipleImagesUseCase) : super(UploadState()) {
     on<AddFilesEvent>(_onAddFiles);
     on<AddFileEvent>(_onAddFile);
     on<RemoveLocalFileEvent>(_onRemoveFile);

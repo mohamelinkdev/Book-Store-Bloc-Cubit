@@ -4,10 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/auth_repository.dart';
 
-class LoginCubit extends Bloc<LoginEvent, LoginState> {
+class LoginViewModel extends Bloc<LoginEvent, LoginState> {
   final AuthRepository _repository;
 
-  LoginCubit(this._repository) : super(LoginState()) {
+  LoginViewModel(this._repository) : super(LoginState()) {
     on<LoginSubmittedEvent>(_onLoginSubmitted);
   }
 
