@@ -5,7 +5,7 @@ import 'package:book_store/core/widgets/search_bar.dart';
 import 'package:book_store/features/books/data/model/book.dart';
 import 'package:book_store/features/books/presentation/models/book_list_state.dart';
 import 'package:book_store/features/books/presentation/view_model/book_list_viewmodel.dart';
-import 'package:book_store/features/books/presentation/view_model/books_book_marked_cubit.dart';
+import 'package:book_store/features/books/presentation/view_model/books_book_marked_view_model.dart';
 import 'package:book_store/features/books/presentation/screens/book_details.dart';
 import 'package:book_store/features/books/presentation/widgets/books_list_view.dart';
 import 'package:book_store/l10n/app_localizations.dart';
@@ -55,7 +55,7 @@ class _BooksScreenState extends State<BooksScreen> {
         Expanded(
           child: BlocBuilder<BookListViewModel, BooksListState>(
             builder: (context, booksState) {
-              return BlocBuilder<BooksBookMarkedCubit, List<Book>>(
+              return BlocBuilder<BooksBookMarkedViewModel, List<Book>>(
                 builder: (context, markedBooks) {
                   return _buildContent(booksState, markedBooks, l10n);
                 },
@@ -98,7 +98,7 @@ class _BooksScreenState extends State<BooksScreen> {
             ? () => context.read<BookListViewModel>().loadBooks()
             : null,
         onBookmarkTap: (book) =>
-            context.read<BooksBookMarkedCubit>().toggle(book),
+            context.read<BooksBookMarkedViewModel>().toggle(book),
         isBookmarked: (id) => markedBooks.any((b) => b.id == id),
         onBookTap: (book) {
           Navigator.push(

@@ -6,12 +6,12 @@ import 'package:book_store/features/books/presentation/models/book_list_state.da
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'dart:async';
-import 'package:book_store/core/localization/locale_cubit.dart';
+import 'package:book_store/core/localization/locale_view_model.dart';
 import 'package:flutter/material.dart';
 
 class BookListViewModel extends Cubit<BooksListState> {
   final BooksRepositoryBase _repository;
-  final LocaleCubit _localeCubit;
+  final LocaleViewModel _localeCubit;
   late final StreamSubscription<Locale> _localeSubscription;
 
   int _page = 0;

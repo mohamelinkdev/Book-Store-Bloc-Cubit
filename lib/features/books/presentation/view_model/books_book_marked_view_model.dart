@@ -2,10 +2,10 @@ import 'package:book_store/features/books/data/model/book.dart';
 import 'package:book_store/features/books/data/repository/books_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class BooksBookMarkedCubit extends Cubit<List<Book>> {
+class BooksBookMarkedViewModel extends Cubit<List<Book>> {
   final BooksRepositoryBase _repository;
 
-  BooksBookMarkedCubit(this._repository) : super([]) {
+  BooksBookMarkedViewModel(this._repository) : super([]) {
     _loadBookmarks();
   }
 

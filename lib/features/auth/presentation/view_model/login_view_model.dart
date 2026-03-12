@@ -3,10 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/auth_repository.dart';
 
-class LoginCubit extends Cubit<LoginState> {
+class LoginViewModel extends Cubit<LoginState> {
   final AuthRepository _repository;
 
-  LoginCubit(this._repository) : super(LoginState());
+  LoginViewModel(this._repository) : super(LoginState());
 
   Future<void> login(String email, String password) async {
     emit(LoginState(isLoading: true));

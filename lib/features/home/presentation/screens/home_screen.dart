@@ -1,5 +1,5 @@
-import 'package:book_store/core/theme/theme_mode_cubit.dart';
-import 'package:book_store/core/localization/locale_cubit.dart';
+import 'package:book_store/core/theme/theme_mode_view_model.dart';
+import 'package:book_store/core/localization/locale_view_model.dart';
 import 'package:book_store/features/books/data/repository/books_repository.dart';
 import 'package:book_store/features/books/presentation/view_model/book_list_viewmodel.dart';
 import 'package:book_store/features/images_picker/data/datasources/remote_storage_datasource.dart';
@@ -26,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _pages = const [BooksScreen(), BookMarkScreen(), ImageHistoryScreen()];
 
   void _toggleThemeMode() {
-    context.read<ThemeModeCubit>().toggle();
+    context.read<ThemeModeViewModel>().toggle();
   }
 
   IconData _themeIcon(ThemeMode mode) {
@@ -39,8 +39,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = context.watch<ThemeModeCubit>().state;
-    final currentLocale = context.watch<LocaleCubit>().state;
+    final themeMode = context.watch<ThemeModeViewModel>().state;
+    final currentLocale = context.watch<LocaleViewModel>().state;
     final l10n = AppLocalizations.of(context)!;
 
     String getAppBarTitle(int index) {
@@ -76,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
             create: (context) =>
                 BookListViewModel(
                   context.read<BooksRepositoryBase>(),
-                  context.read<LocaleCubit>(),
+                  context.read<LocaleViewModel>(),
                 ),
           ),
         ],
@@ -86,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
             actions: [
               TextButton(
                 onPressed: () {
-                  context.read<LocaleCubit>().toggleLocale();
+                  context.read<LocaleViewModel>().toggleLocale();
                 },
                 child: Text(
                   currentLocale.languageCode == 'en' ? 'AR' : 'EN',

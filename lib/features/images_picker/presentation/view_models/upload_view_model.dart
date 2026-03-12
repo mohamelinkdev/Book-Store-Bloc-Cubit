@@ -3,10 +3,10 @@ import 'package:book_store/features/images_picker/domain/usecases/upload_multipl
 import 'package:book_store/features/images_picker/presentation/model/upload_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class UploadCubit extends Cubit<UploadState> {
+class UploadViewModel extends Cubit<UploadState> {
   final UploadMultipleImagesUseCase _uploadMultipleImagesUseCase;
 
-  UploadCubit(this._uploadMultipleImagesUseCase) : super(UploadState());
+  UploadViewModel(this._uploadMultipleImagesUseCase) : super(UploadState());
 
   void addFiles(List<File> files) {
     if (files.isNotEmpty) {

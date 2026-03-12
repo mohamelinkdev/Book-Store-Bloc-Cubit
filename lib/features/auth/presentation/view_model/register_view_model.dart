@@ -3,10 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/auth_repository.dart';
 
-class RegisterCubit extends Cubit<RegisterState> {
+class RegisterViewModel extends Cubit<RegisterState> {
   final AuthRepository _repository;
 
-  RegisterCubit(this._repository) : super(RegisterState());
+  RegisterViewModel(this._repository) : super(RegisterState());
 
   Future<void> register(String email, String password) async {
     emit(RegisterState(isLoading: true));

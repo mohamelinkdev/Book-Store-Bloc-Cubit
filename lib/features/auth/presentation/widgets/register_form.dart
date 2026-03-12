@@ -3,7 +3,7 @@ import 'package:book_store/core/utils/app_loader.dart';
 import 'package:book_store/core/utils/app_validator.dart';
 import 'package:book_store/core/widgets/app_button.dart';
 import 'package:book_store/core/widgets/app_text_form_field.dart';
-import 'package:book_store/features/auth/presentation/view_model/register_cubit.dart';
+import 'package:book_store/features/auth/presentation/view_model/register_view_model.dart';
 import 'package:book_store/features/auth/presentation/models/register_state.dart';
 import 'package:book_store/features/auth/presentation/screens/login_screen.dart';
 import 'package:book_store/l10n/app_localizations.dart';
@@ -33,7 +33,7 @@ class _RegisterFormState extends State<RegisterForm> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     
-    return BlocConsumer<RegisterCubit, RegisterState>(
+    return BlocConsumer<RegisterViewModel, RegisterState>(
       listenWhen: (previous, current) {
         return previous.isLoading != current.isLoading || 
                current.isSuccess || 
@@ -99,7 +99,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 text: l10n.register,
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    context.read<RegisterCubit>().register(
+                    context.read<RegisterViewModel>().register(
                           emailController.text.trim(),
                           passwordController.text.trim(),
                         );

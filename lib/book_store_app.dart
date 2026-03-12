@@ -1,13 +1,13 @@
 import 'package:book_store/features/books/data/repository/books_repository.dart';
-import 'package:book_store/features/books/presentation/view_model/books_book_marked_cubit.dart';
+import 'package:book_store/features/books/presentation/view_model/books_book_marked_view_model.dart';
 import 'package:book_store/features/splash/splash_screen.dart';
 import 'package:book_store/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/theme/app_theme.dart';
-import 'core/theme/theme_mode_cubit.dart';
-import 'core/localization/locale_cubit.dart';
+import 'core/theme/theme_mode_view_model.dart';
+import 'core/localization/locale_view_model.dart';
 
 class BookStoreApp extends StatelessWidget {
   const BookStoreApp({super.key});
@@ -22,16 +22,16 @@ class BookStoreApp extends StatelessWidget {
       ],
       child: MultiBlocProvider(
         providers: [
-          BlocProvider(create: (_) => ThemeModeCubit()),
-          BlocProvider(create: (_) => LocaleCubit()),
+          BlocProvider(create: (_) => ThemeModeViewModel()),
+          BlocProvider(create: (_) => LocaleViewModel()),
           BlocProvider(
             create: (context) =>
-                BooksBookMarkedCubit(context.read<BooksRepositoryBase>()),
+                BooksBookMarkedViewModel(context.read<BooksRepositoryBase>()),
           ),
         ],
-        child: BlocBuilder<ThemeModeCubit, ThemeMode>(
+        child: BlocBuilder<ThemeModeViewModel, ThemeMode>(
           builder: (context, themeMode) {
-            return BlocBuilder<LocaleCubit, Locale>(
+            return BlocBuilder<LocaleViewModel, Locale>(
               builder: (context, currentLocale) {
                 return MaterialApp(
                   debugShowCheckedModeBanner: false,

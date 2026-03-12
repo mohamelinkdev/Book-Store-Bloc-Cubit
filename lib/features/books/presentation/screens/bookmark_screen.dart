@@ -1,5 +1,5 @@
 import 'package:book_store/features/books/data/model/book.dart';
-import 'package:book_store/features/books/presentation/view_model/books_book_marked_cubit.dart';
+import 'package:book_store/features/books/presentation/view_model/books_book_marked_view_model.dart';
 import 'package:book_store/features/books/presentation/screens/book_details.dart';
 import 'package:book_store/features/books/presentation/widgets/book_list_item.dart';
 import 'package:book_store/l10n/app_localizations.dart';
@@ -13,7 +13,7 @@ class BookMarkScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return BlocBuilder<BooksBookMarkedCubit, List<Book>>(
+    return BlocBuilder<BooksBookMarkedViewModel, List<Book>>(
       builder: (context, books) {
         if (books.isEmpty) {
           return Center(child: Text(l10n.noBookmarks));
@@ -27,7 +27,7 @@ class BookMarkScreen extends StatelessWidget {
               book: book,
               isBookmarked: true,
               onBookmarkTap: () =>
-                  context.read<BooksBookMarkedCubit>().toggle(book),
+                  context.read<BooksBookMarkedViewModel>().toggle(book),
               onTap: () {
                 Navigator.push(
                   context,

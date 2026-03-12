@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:book_store/core/constants/values_manager.dart';
 import 'package:book_store/core/constants/font_manger.dart';
 import 'package:book_store/features/images_picker/domain/usecases/upload_multiple_images_usecase.dart';
-import 'package:book_store/features/images_picker/presentation/view_models/upload_cubit.dart';
+import 'package:book_store/features/images_picker/presentation/view_models/upload_view_model.dart';
 import 'package:book_store/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,7 +33,7 @@ class UploadImagesScreen extends StatelessWidget {
       ],
       child: BlocProvider(
         create: (context) =>
-            UploadCubit(context.read<UploadMultipleImagesUseCase>()),
+            UploadViewModel(context.read<UploadMultipleImagesUseCase>()),
         child: const _UploadImagesContent(),
       ),
     );
@@ -45,8 +45,8 @@ class _UploadImagesContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final uploadState = context.watch<UploadCubit>().state;
-    final cubit = context.read<UploadCubit>();
+    final uploadState = context.watch<UploadViewModel>().state;
+    final cubit = context.read<UploadViewModel>();
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(

@@ -3,10 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
 import 'package:book_store/core/constants/hive_constants.dart';
 
-class LocaleCubit extends Cubit<Locale> {
+class LocaleViewModel extends Cubit<Locale> {
   static const _localeKey = 'app_locale';
 
-  LocaleCubit() : super(_loadInitialLocale());
+  LocaleViewModel() : super(_loadInitialLocale());
 
   static Locale _loadInitialLocale() {
     final box = Hive.box(HiveConstants.settingsBox);

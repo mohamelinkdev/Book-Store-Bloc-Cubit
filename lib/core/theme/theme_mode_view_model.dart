@@ -3,10 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
 import 'package:book_store/core/constants/hive_constants.dart';
 
-class ThemeModeCubit extends Cubit<ThemeMode> {
+class ThemeModeViewModel extends Cubit<ThemeMode> {
   static const _themeKey = 'app_theme_mode';
 
-  ThemeModeCubit() : super(_loadInitialTheme());
+  ThemeModeViewModel() : super(_loadInitialTheme());
 
   static ThemeMode _loadInitialTheme() {
     final box = Hive.box(HiveConstants.settingsBox);
