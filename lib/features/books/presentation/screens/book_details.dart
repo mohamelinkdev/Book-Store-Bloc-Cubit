@@ -1,6 +1,7 @@
 import 'package:book_store/core/constants/values_manager.dart';
 import 'package:book_store/features/books/data/model/book.dart';
 import 'package:book_store/features/books/presentation/view_model/books_book_marked_cubit.dart';
+import 'package:book_store/features/books/presentation/view_model/books_book_marked_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -22,7 +23,7 @@ class BookDetailsScreen extends StatelessWidget {
               IconButton(
                 icon: Icon(isBookmarked ? Icons.bookmark : Icons.bookmark_border),
                 onPressed: () {
-                  context.read<BooksBookMarkedCubit>().toggle(book);
+                  context.read<BooksBookMarkedCubit>().add(ToggleBookmarkEvent(book));
                 },
               ),
             ],

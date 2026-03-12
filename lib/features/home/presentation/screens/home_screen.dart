@@ -1,5 +1,7 @@
 import 'package:book_store/core/theme/theme_mode_cubit.dart';
+import 'package:book_store/core/theme/theme_mode_event.dart';
 import 'package:book_store/core/localization/locale_cubit.dart';
+import 'package:book_store/core/localization/locale_event.dart';
 import 'package:book_store/features/books/data/repository/books_repository.dart';
 import 'package:book_store/features/books/presentation/view_model/book_list_viewmodel.dart';
 import 'package:book_store/features/images_picker/data/datasources/remote_storage_datasource.dart';
@@ -26,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _pages = const [BooksScreen(), BookMarkScreen(), ImageHistoryScreen()];
 
   void _toggleThemeMode() {
-    context.read<ThemeModeCubit>().toggle();
+    context.read<ThemeModeCubit>().add(ToggleThemeEvent());
   }
 
   IconData _themeIcon(ThemeMode mode) {
@@ -86,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
             actions: [
               TextButton(
                 onPressed: () {
-                  context.read<LocaleCubit>().toggleLocale();
+                  context.read<LocaleCubit>().add(ToggleLocaleEvent());
                 },
                 child: Text(
                   currentLocale.languageCode == 'en' ? 'AR' : 'EN',

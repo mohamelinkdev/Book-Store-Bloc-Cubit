@@ -4,6 +4,7 @@ import 'package:book_store/features/auth/presentation/screens/login_screen.dart'
 import 'package:book_store/features/home/presentation/screens/home_screen.dart';
 import 'package:book_store/features/splash/model/splash_state.dart';
 import 'package:book_store/features/splash/splash_view_model.dart';
+import 'package:book_store/features/splash/splash_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -18,7 +19,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => SplashViewModel()..checkAuth(),
+      create: (context) => SplashViewModel()..add(CheckAuthEvent()),
       child: BlocListener<SplashViewModel, SplashStatus>(
         listener: (context, state) {
           if (state == SplashStatus.authenticated) {

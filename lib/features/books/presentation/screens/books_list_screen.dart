@@ -5,7 +5,9 @@ import 'package:book_store/core/widgets/search_bar.dart';
 import 'package:book_store/features/books/data/model/book.dart';
 import 'package:book_store/features/books/presentation/models/book_list_state.dart';
 import 'package:book_store/features/books/presentation/view_model/book_list_viewmodel.dart';
+import 'package:book_store/features/books/presentation/view_model/book_list_event.dart';
 import 'package:book_store/features/books/presentation/view_model/books_book_marked_cubit.dart';
+import 'package:book_store/features/books/presentation/view_model/books_book_marked_event.dart';
 import 'package:book_store/features/books/presentation/screens/book_details.dart';
 import 'package:book_store/features/books/presentation/widgets/books_list_view.dart';
 import 'package:book_store/l10n/app_localizations.dart';
@@ -31,12 +33,12 @@ class _BooksScreenState extends State<BooksScreen> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      context.read<BookListViewModel>().loadBooks();
+      context.read<BookListViewModel>().add(LoadBooksEvent());
     }
   }
 
   void _onSearch(String query) {
-    context.read<BookListViewModel>().search(query);
+    context.read<BookListViewModel>().add(SearchBooksEvent(query));
   }
 
   @override
@@ -79,7 +81,7 @@ class _BooksScreenState extends State<BooksScreen> {
     if (state is Failure) {
       return ErrorState(
         message: state.errorMessage,
-        onRetry: () => context.read<BookListViewModel>().refresh(),
+        onRetry: () => context.read<BookListViewModel>().add(RefreshBooksEvent()),
       );
     }
 
@@ -93,12 +95,12 @@ class _BooksScreenState extends State<BooksScreen> {
         hasMore: state.hasMore,
         paginationError: state.paginationError,
         scrollController: _scrollController,
-        onRefresh: () => context.read<BookListViewModel>().refresh(),
+        onRefresh: () async => context.read<BookListViewModel>().add(RefreshBooksEvent()),
         onRetry: state.paginationError != null
-            ? () => context.read<BookListViewModel>().loadBooks()
+            ? () => context.read<BookListViewModel>().add(LoadBooksEvent())
             : null,
         onBookmarkTap: (book) =>
-            context.read<BooksBookMarkedCubit>().toggle(book),
+            context.read<BooksBookMarkedCubit>().add(ToggleBookmarkEvent(book)),
         isBookmarked: (id) => markedBooks.any((b) => b.id == id),
         onBookTap: (book) {
           Navigator.push(

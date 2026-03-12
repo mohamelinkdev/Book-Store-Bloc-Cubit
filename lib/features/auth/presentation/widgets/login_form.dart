@@ -4,6 +4,7 @@ import 'package:book_store/core/utils/app_validator.dart';
 import 'package:book_store/core/widgets/app_button.dart';
 import 'package:book_store/core/widgets/app_text_form_field.dart';
 import 'package:book_store/features/auth/presentation/view_model/login_cubit.dart';
+import 'package:book_store/features/auth/presentation/view_model/login_event.dart';
 import 'package:book_store/features/auth/presentation/models/login_state.dart';
 import 'package:book_store/features/auth/presentation/screens/register_screen.dart';
 import 'package:book_store/features/home/presentation/screens/home_screen.dart';
@@ -100,10 +101,10 @@ class _LoginFormState extends State<LoginForm> {
                 text: l10n.login,
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    context.read<LoginCubit>().login(
-                          emailController.text.trim(),
-                          passwordController.text.trim(),
-                        );
+                    context.read<LoginCubit>().add(LoginSubmittedEvent(
+                          email: emailController.text.trim(),
+                          password: passwordController.text.trim(),
+                        ));
                   }
                 },
               ),

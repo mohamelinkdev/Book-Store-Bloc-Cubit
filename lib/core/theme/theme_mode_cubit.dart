@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
 import 'package:book_store/core/constants/hive_constants.dart';
+import 'package:book_store/core/theme/theme_mode_event.dart';
 
-class ThemeModeCubit extends Cubit<ThemeMode> {
+class ThemeModeCubit extends Bloc<ThemeModeEvent, ThemeMode> {
   static const _themeKey = 'app_theme_mode';
 
-  ThemeModeCubit() : super(_loadInitialTheme());
+  ThemeModeCubit() : super(_loadInitialTheme()) {
+    on<ToggleThemeEvent>(_onToggle);
+  }
 
   static ThemeMode _loadInitialTheme() {
     final box = Hive.box(HiveConstants.settingsBox);
@@ -23,20 +26,16 @@ class ThemeModeCubit extends Cubit<ThemeMode> {
   Brightness get _systemBrightness =>
       WidgetsBinding.instance.platformDispatcher.platformBrightness;
 
-  void toggle() {
+  Future<void> _onToggle(ToggleThemeEvent event, Emitter<ThemeMode> emit) async {
     final newMode = switch (state) {
       ThemeMode.system =>
         _systemBrightness == Brightness.dark ? ThemeMode.light : ThemeMode.dark,
       ThemeMode.light => ThemeMode.dark,
       ThemeMode.dark => ThemeMode.system,
     };
-    
-    _setAndSaveTheme(newMode);
-  }
 
-  Future<void> _setAndSaveTheme(ThemeMode mode) async {
     final box = Hive.box(HiveConstants.settingsBox);
-    await box.put(_themeKey, mode.name);
-    emit(mode);
+    await box.put(_themeKey, newMode.name);
+    emit(newMode);
   }
 }

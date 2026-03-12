@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
 import 'package:book_store/core/constants/hive_constants.dart';
+import 'package:book_store/core/localization/locale_event.dart';
 
-class LocaleCubit extends Cubit<Locale> {
+class LocaleCubit extends Bloc<LocaleEvent, Locale> {
   static const _localeKey = 'app_locale';
 
-  LocaleCubit() : super(_loadInitialLocale());
+  LocaleCubit() : super(_loadInitialLocale()) {
+    on<ToggleLocaleEvent>(_onToggle);
+    on<SetLocaleEvent>(_onSetLocale);
+  }
 
   static Locale _loadInitialLocale() {
     final box = Hive.box(HiveConstants.settingsBox);
@@ -17,19 +21,19 @@ class LocaleCubit extends Cubit<Locale> {
     return const Locale('en');
   }
 
-  void toggleLocale() {
+  Future<void> _onToggle(ToggleLocaleEvent event, Emitter<Locale> emit) async {
     if (state.languageCode == 'en') {
-      _setAndSaveLocale(const Locale('ar'));
+      await _setAndSaveLocale(const Locale('ar'), emit);
     } else {
-      _setAndSaveLocale(const Locale('en'));
+      await _setAndSaveLocale(const Locale('en'), emit);
     }
   }
 
-  void setLocale(Locale locale) {
-    _setAndSaveLocale(locale);
+  Future<void> _onSetLocale(SetLocaleEvent event, Emitter<Locale> emit) async {
+    await _setAndSaveLocale(event.locale, emit);
   }
 
-  Future<void> _setAndSaveLocale(Locale locale) async {
+  Future<void> _setAndSaveLocale(Locale locale, Emitter<Locale> emit) async {
     final box = Hive.box(HiveConstants.settingsBox);
     await box.put(_localeKey, locale.languageCode);
     emit(locale);

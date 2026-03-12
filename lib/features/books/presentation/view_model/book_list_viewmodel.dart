@@ -3,13 +3,14 @@ import 'package:book_store/core/exceptions/exceptions.dart';
 import 'package:book_store/features/books/data/model/book.dart';
 import 'package:book_store/features/books/data/repository/books_repository.dart';
 import 'package:book_store/features/books/presentation/models/book_list_state.dart';
+import 'package:book_store/features/books/presentation/view_model/book_list_event.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'dart:async';
 import 'package:book_store/core/localization/locale_cubit.dart';
 import 'package:flutter/material.dart';
 
-class BookListViewModel extends Cubit<BooksListState> {
+class BookListViewModel extends Bloc<BookListEvent, BooksListState> {
   final BooksRepositoryBase _repository;
   final LocaleCubit _localeCubit;
   late final StreamSubscription<Locale> _localeSubscription;
@@ -23,15 +24,24 @@ class BookListViewModel extends Cubit<BooksListState> {
 
   BookListViewModel(this._repository, this._localeCubit) : super(Loading()) {
     _currentLang = _localeCubit.state.languageCode;
-    loadBooks(reset: true);
+
+    on<LoadBooksEvent>(_onLoadBooks);
+    on<SearchBooksEvent>(_onSearch);
+    on<RefreshBooksEvent>(_onRefresh);
+
+    add(LoadBooksEvent(reset: true));
 
     _localeSubscription = _localeCubit.stream.listen((locale) {
       _currentLang = locale.languageCode;
-      loadBooks(reset: true);
+      add(LoadBooksEvent(reset: true));
     });
   }
 
-  Future<void> loadBooks({bool reset = false}) async {
+  Future<void> _onLoadBooks(
+    LoadBooksEvent event,
+    Emitter<BooksListState> emit,
+  ) async {
+    final reset = event.reset;
 
     if (_isLoadingMore) return;
     if (!_hasMore && !reset) return;
@@ -67,21 +77,21 @@ class BookListViewModel extends Cubit<BooksListState> {
 
       emit(Success(_books, hasMore: _hasMore));
     } on NetworkException catch (_) {
-      _emitError('Network error', reset);
+      _emitError('Network error', reset, emit);
     } on ServerException catch (_) {
-      _emitError('Server error', reset);
+      _emitError('Server error', reset, emit);
     } on TimeoutException {
-      _emitError('Request timed out', reset);
+      _emitError('Request timed out', reset, emit);
     } on FormatException catch (_) {
-      _emitError('Data parsing error', reset);
+      _emitError('Data parsing error', reset, emit);
     } catch (_) {
-      _emitError('An unexpected error occurred', reset);
+      _emitError('An unexpected error occurred', reset, emit);
     }
 
     _isLoadingMore = false;
   }
 
-  void _emitError(String message, bool reset) {
+  void _emitError(String message, bool reset, Emitter<BooksListState> emit) {
     if (reset) {
       emit(Failure(message, hasMore: _hasMore));
     } else {
@@ -89,19 +99,25 @@ class BookListViewModel extends Cubit<BooksListState> {
     }
   }
 
-  void search(String query) {
-    final effectiveQuery = query.trim().isEmpty
+  Future<void> _onSearch(
+    SearchBooksEvent event,
+    Emitter<BooksListState> emit,
+  ) async {
+    final effectiveQuery = event.query.trim().isEmpty
         ? ApiConstants.defaultSearch
-        : query.trim();
+        : event.query.trim();
 
     if (effectiveQuery == _query) return;
 
     _query = effectiveQuery;
-    loadBooks(reset: true);
+    await _onLoadBooks(LoadBooksEvent(reset: true), emit);
   }
 
-  Future<void> refresh() async {
-    await loadBooks(reset: true);
+  Future<void> _onRefresh(
+    RefreshBooksEvent event,
+    Emitter<BooksListState> emit,
+  ) async {
+    await _onLoadBooks(LoadBooksEvent(reset: true), emit);
   }
 
   @override
