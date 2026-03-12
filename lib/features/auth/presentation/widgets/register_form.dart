@@ -3,7 +3,7 @@ import 'package:book_store/core/utils/app_loader.dart';
 import 'package:book_store/core/utils/app_validator.dart';
 import 'package:book_store/core/widgets/app_button.dart';
 import 'package:book_store/core/widgets/app_text_form_field.dart';
-import 'package:book_store/features/auth/presentation/view_model/register_view_model.dart';
+import 'package:book_store/features/auth/presentation/view_model/register_viewmodel.dart%E2%80%8E';
 import 'package:book_store/features/auth/presentation/models/register_state.dart';
 import 'package:book_store/features/auth/presentation/screens/login_screen.dart';
 import 'package:book_store/l10n/app_localizations.dart';
