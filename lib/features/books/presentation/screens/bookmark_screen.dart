@@ -1,35 +1,39 @@
-import 'package:book_store/features/books/presentation/providers/books_marked_view_model_provider.dart';
+import 'package:book_store/features/books/data/model/book.dart';
+import 'package:book_store/features/books/presentation/view_model/books_book_marked_cubit.dart';
 import 'package:book_store/features/books/presentation/screens/book_details.dart';
 import 'package:book_store/features/books/presentation/widgets/book_list_item.dart';
 import 'package:book_store/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class BookMarkScreen extends ConsumerWidget {
+class BookMarkScreen extends StatelessWidget {
   const BookMarkScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final books = ref.watch(markedBooksViewModelProvider);
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    if (books.isEmpty) {
-      return Center(child: Text(l10n.noBookmarks));
-    }
-    return ListView.builder(
-      itemCount: books.length,
-      itemBuilder: (_, index) {
-        final book = books[index];
+    return BlocBuilder<BooksBookMarkedCubit, List<Book>>(
+      builder: (context, books) {
+        if (books.isEmpty) {
+          return Center(child: Text(l10n.noBookmarks));
+        }
+        return ListView.builder(
+          itemCount: books.length,
+          itemBuilder: (_, index) {
+            final book = books[index];
 
-        return BookListItem(
-          book: book,
-          isBookmarked: true,
-          onBookmarkTap: () =>
-              ref.read(markedBooksViewModelProvider.notifier).toggle(book),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => BookDetailsScreen(book: book)),
+            return BookListItem(
+              book: book,
+              isBookmarked: true,
+              onBookmarkTap: () =>
+                  context.read<BooksBookMarkedCubit>().toggle(book),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => BookDetailsScreen(book: book)),
+                );
+              },
             );
           },
         );

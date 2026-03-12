@@ -4,22 +4,22 @@ import 'package:book_store/core/widgets/loading_state.dart';
 import 'package:book_store/core/widgets/search_bar.dart';
 import 'package:book_store/features/books/data/model/book.dart';
 import 'package:book_store/features/books/presentation/models/book_list_state.dart';
-import 'package:book_store/features/books/presentation/providers/books_list_view_mode_provider.dart';
-import 'package:book_store/features/books/presentation/providers/books_marked_view_model_provider.dart';
+import 'package:book_store/features/books/presentation/view_model/book_list_viewmodel.dart';
+import 'package:book_store/features/books/presentation/view_model/books_book_marked_cubit.dart';
 import 'package:book_store/features/books/presentation/screens/book_details.dart';
 import 'package:book_store/features/books/presentation/widgets/books_list_view.dart';
 import 'package:book_store/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class BooksScreen extends ConsumerStatefulWidget {
+class BooksScreen extends StatefulWidget {
   const BooksScreen({super.key});
 
   @override
-  ConsumerState<BooksScreen> createState() => _BooksScreenState();
+  State<BooksScreen> createState() => _BooksScreenState();
 }
 
-class _BooksScreenState extends ConsumerState<BooksScreen> {
+class _BooksScreenState extends State<BooksScreen> {
   final _scrollController = ScrollController();
 
   @override
@@ -31,12 +31,12 @@ class _BooksScreenState extends ConsumerState<BooksScreen> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      ref.read(booksViewModelProvider.notifier).loadBooks();
+      context.read<BookListViewModel>().loadBooks();
     }
   }
 
   void _onSearch(String query) {
-    ref.read(booksViewModelProvider.notifier).search(query);
+    context.read<BookListViewModel>().search(query);
   }
 
   @override
@@ -47,14 +47,22 @@ class _BooksScreenState extends ConsumerState<BooksScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final booksState = ref.watch(booksViewModelProvider);
-    final markedBooks = ref.watch(markedBooksViewModelProvider);
     final l10n = AppLocalizations.of(context)!;
 
     return Column(
       children: [
         AppSearchBar(onSearch: _onSearch, hintText: l10n.searchBooksHint),
-        Expanded(child: _buildContent(booksState, markedBooks, l10n)),
+        Expanded(
+          child: BlocBuilder<BookListViewModel, BooksListState>(
+            builder: (context, booksState) {
+              return BlocBuilder<BooksBookMarkedCubit, List<Book>>(
+                builder: (context, markedBooks) {
+                  return _buildContent(booksState, markedBooks, l10n);
+                },
+              );
+            },
+          ),
+        ),
       ],
     );
   }
@@ -71,7 +79,7 @@ class _BooksScreenState extends ConsumerState<BooksScreen> {
     if (state is Failure) {
       return ErrorState(
         message: state.errorMessage,
-        onRetry: () => ref.read(booksViewModelProvider.notifier).refresh(),
+        onRetry: () => context.read<BookListViewModel>().refresh(),
       );
     }
 
@@ -85,12 +93,12 @@ class _BooksScreenState extends ConsumerState<BooksScreen> {
         hasMore: state.hasMore,
         paginationError: state.paginationError,
         scrollController: _scrollController,
-        onRefresh: () => ref.read(booksViewModelProvider.notifier).refresh(),
+        onRefresh: () => context.read<BookListViewModel>().refresh(),
         onRetry: state.paginationError != null
-            ? () => ref.read(booksViewModelProvider.notifier).loadBooks()
+            ? () => context.read<BookListViewModel>().loadBooks()
             : null,
         onBookmarkTap: (book) =>
-            ref.read(markedBooksViewModelProvider.notifier).toggle(book),
+            context.read<BooksBookMarkedCubit>().toggle(book),
         isBookmarked: (id) => markedBooks.any((b) => b.id == id),
         onBookTap: (book) {
           Navigator.push(

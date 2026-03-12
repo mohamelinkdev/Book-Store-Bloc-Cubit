@@ -1,19 +1,52 @@
 import 'dart:io';
 import 'package:book_store/core/constants/values_manager.dart';
 import 'package:book_store/core/constants/font_manger.dart';
-import 'package:book_store/features/images_picker/presentation/providers/storage_view_model_providers.dart';
+import 'package:book_store/features/images_picker/domain/usecases/upload_multiple_images_usecase.dart';
+import 'package:book_store/features/images_picker/presentation/view_models/upload_cubit.dart';
 import 'package:book_store/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
-class UploadImagesScreen extends ConsumerWidget {
+import 'package:book_store/features/images_picker/data/datasources/remote_storage_datasource.dart';
+import 'package:book_store/features/images_picker/data/repositories/storage_repository_impl.dart';
+import 'package:book_store/features/images_picker/domain/repositories/storage_repository.dart';
+
+class UploadImagesScreen extends StatelessWidget {
   const UploadImagesScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final uploadState = ref.watch(uploadViewModelProvider);
-    final notifier = ref.read(uploadViewModelProvider.notifier);
+  Widget build(BuildContext context) {
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<IRemoteStorageDataSource>(
+          create: (_) => RemoteStorageDatasource(),
+        ),
+        RepositoryProvider<StorageRepository>(
+          create: (context) =>
+              StorageRepositoryImpl(context.read<IRemoteStorageDataSource>()),
+        ),
+        RepositoryProvider<UploadMultipleImagesUseCase>(
+          create: (context) =>
+              UploadMultipleImagesUseCase(context.read<StorageRepository>()),
+        ),
+      ],
+      child: BlocProvider(
+        create: (context) =>
+            UploadCubit(context.read<UploadMultipleImagesUseCase>()),
+        child: const _UploadImagesContent(),
+      ),
+    );
+  }
+}
+
+class _UploadImagesContent extends StatelessWidget {
+  const _UploadImagesContent();
+
+  @override
+  Widget build(BuildContext context) {
+    final uploadState = context.watch<UploadCubit>().state;
+    final cubit = context.read<UploadCubit>();
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
@@ -31,7 +64,7 @@ class UploadImagesScreen extends ConsumerWidget {
                       final files = pickedFiles
                           .map((xFile) => File(xFile.path))
                           .toList();
-                      notifier.addFiles(files);
+                      cubit.addFiles(files);
                     }
                   },
           ),
@@ -45,7 +78,7 @@ class UploadImagesScreen extends ConsumerWidget {
                       source: ImageSource.camera,
                     );
                     if (pickedFile != null) {
-                      notifier.addFile(File(pickedFile.path));
+                      cubit.addFile(File(pickedFile.path));
                     }
                   },
           ),
@@ -85,7 +118,7 @@ class UploadImagesScreen extends ConsumerWidget {
                                   color: Colors.white,
                                   size: AppSize.s32,
                                 ),
-                                onPressed: () => notifier.removeLocalFile(file),
+                                onPressed: () => cubit.removeLocalFile(file),
                               ),
                             ),
                         ],
@@ -103,7 +136,7 @@ class UploadImagesScreen extends ConsumerWidget {
                         onPressed: uploadState.isUploading
                             ? null
                             : () async {
-                                final success = await notifier
+                                final success = await cubit
                                     .uploadAllSelected();
                                 if (success && context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
