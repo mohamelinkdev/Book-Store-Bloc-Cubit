@@ -1,28 +1,29 @@
 import 'package:book_store/features/auth/presentation/models/register_state.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:book_store/features/auth/presentation/view_model/register_event.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/auth_repository.dart';
 
-class RegisterViewModel extends Notifier<RegisterState> {
-  final AuthRepository _repository = AuthRepository();
+class RegisterViewModel extends Bloc<RegisterEvent, RegisterState> {
+  final AuthRepository _repository;
 
-  @override
-  RegisterState build() {
-    return RegisterState();
+  RegisterViewModel(this._repository) : super(RegisterState()) {
+    on<RegisterSubmittedEvent>(_onRegisterSubmitted);
   }
 
-  Future<void> register(String email, String password) async {
-    state = RegisterState(isLoading: true);
+  Future<void> _onRegisterSubmitted(
+    RegisterSubmittedEvent event,
+    Emitter<RegisterState> emit,
+  ) async {
+    emit(RegisterState(isLoading: true));
 
     try {
-      await _repository.register(email: email, password: password);
-      state = RegisterState(isSuccess: true);
+      await _repository.register(email: event.email, password: event.password);
+      emit(RegisterState(isSuccess: true));
     } on FirebaseAuthException catch (e) {
-      state = RegisterState(errorMessage: e.message);
+      emit(RegisterState(errorMessage: e.message));
     } catch (e) {
-      state = RegisterState(errorMessage: 'Something went wrong');
+      emit(RegisterState(errorMessage: 'Something went wrong'));
     }
-
-    state = RegisterState(isLoading: false);
   }
 }

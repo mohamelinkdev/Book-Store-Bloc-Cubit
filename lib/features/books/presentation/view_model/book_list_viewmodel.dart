@@ -1,30 +1,48 @@
 import 'package:book_store/core/constants/api_constants.dart';
 import 'package:book_store/core/exceptions/exceptions.dart';
 import 'package:book_store/features/books/data/model/book.dart';
+import 'package:book_store/features/books/data/repository/books_repository.dart';
 import 'package:book_store/features/books/presentation/models/book_list_state.dart';
-import 'package:book_store/core/localization/locale_provider.dart';
-import 'package:book_store/features/books/presentation/providers/books_repository_provider.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:book_store/features/books/presentation/view_model/book_list_event.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class BooksViewModel extends Notifier<BooksListState> {
+import 'dart:async';
+import 'package:book_store/core/localization/locale_view_model.dart';
+import 'package:flutter/material.dart';
+
+class BookListViewModel extends Bloc<BookListEvent, BooksListState> {
+  final BooksRepositoryBase _repository;
+  final LocaleViewModel _localeCubit;
+  late final StreamSubscription<Locale> _localeSubscription;
+
   int _page = 0;
   String _query = ApiConstants.defaultSearch;
   bool _hasMore = true;
   bool _isLoadingMore = false;
   List<Book> _books = [];
+  String _currentLang = 'en';
 
-  @override
-  BooksListState build() {
-    // Watch locale to refresh books when language changes
-    ref.watch(localeProvider);
-    
-    // Use Future.microtask to avoid triggering state update during build
-    Future.microtask(() => loadBooks(reset: true));
-    
-    return Loading();
+  BookListViewModel(this._repository, this._localeCubit) : super(Loading()) {
+    _currentLang = _localeCubit.state.languageCode;
+
+    on<LoadBooksEvent>(_onLoadBooks);
+    on<SearchBooksEvent>(_onSearch);
+    on<RefreshBooksEvent>(_onRefresh);
+
+    add(LoadBooksEvent(reset: true));
+
+    _localeSubscription = _localeCubit.stream.listen((locale) {
+      _currentLang = locale.languageCode;
+      add(LoadBooksEvent(reset: true));
+    });
   }
 
-  Future<void> loadBooks({bool reset = false}) async {
+  Future<void> _onLoadBooks(
+    LoadBooksEvent event,
+    Emitter<BooksListState> emit,
+  ) async {
+    final reset = event.reset;
+
     if (_isLoadingMore) return;
     if (!_hasMore && !reset) return;
 
@@ -34,24 +52,21 @@ class BooksViewModel extends Notifier<BooksListState> {
       _page = 0;
       _hasMore = true;
       _books = [];
-      state = Loading(hasMore: _hasMore);
+      emit(Loading(hasMore: _hasMore));
     }
 
     try {
-      final repo = ref.read(booksRepositoryProvider);
-      final currentLocale = ref.read(localeProvider);
-
-      final books = await repo.getBooks(
+      final books = await _repository.getBooks(
         query: _query,
         page: _page,
-        lang: currentLocale.languageCode,
+        lang: _currentLang,
       );
 
       if (books.isEmpty) {
         _hasMore = false;
 
         if (reset && _books.isEmpty) {
-          state = NoDataError();
+          emit(NoDataError());
           _isLoadingMore = false;
           return;
         }
@@ -60,55 +75,54 @@ class BooksViewModel extends Notifier<BooksListState> {
       _page++;
       _books.addAll(books);
 
-      state = Success(_books, hasMore: _hasMore);
-    } on NetworkException catch (e) {
-      if (reset) {
-        state = Failure('Network error', hasMore: _hasMore);
-      } else {
-        state = Success(_books, hasMore: _hasMore, paginationError: 'Network error');
-      }
-    } on ServerException catch (e) {
-      if (reset) {
-        state = Failure('Server error', hasMore: _hasMore);
-      } else {
-        state = Success(_books, hasMore: _hasMore, paginationError: 'Server error');
-      }
+      emit(Success(_books, hasMore: _hasMore));
+    } on NetworkException catch (_) {
+      _emitError('Network error', reset, emit);
+    } on ServerException catch (_) {
+      _emitError('Server error', reset, emit);
     } on TimeoutException {
-      final message = 'Request timed out';
-      if (reset) {
-        state = Failure(message, hasMore: _hasMore);
-      } else {
-        state = Success(_books, hasMore: _hasMore, paginationError: message);
-      }
-    } on FormatException catch (e) {
-      if (reset) {
-        state = Failure('Data parsing error', hasMore: _hasMore);
-      } else {
-        state = Success(_books, hasMore: _hasMore, paginationError: 'Data parsing error');
-      }
-    } catch (e, stackTrace) {
-      final message = 'An unexpected error occurred';
-      if (reset) {
-        state = Failure(message, hasMore: _hasMore);
-      } else {
-        state = Success(_books, hasMore: _hasMore, paginationError: message);
-      }
+      _emitError('Request timed out', reset, emit);
+    } on FormatException catch (_) {
+      _emitError('Data parsing error', reset, emit);
+    } catch (_) {
+      _emitError('An unexpected error occurred', reset, emit);
     }
 
     _isLoadingMore = false;
   }
 
-  void search(String query) {
-    final effectiveQuery =
-        query.trim().isEmpty ? ApiConstants.defaultSearch : query.trim();
+  void _emitError(String message, bool reset, Emitter<BooksListState> emit) {
+    if (reset) {
+      emit(Failure(message, hasMore: _hasMore));
+    } else {
+      emit(Success([..._books], hasMore: _hasMore, paginationError: message));
+    }
+  }
+
+  Future<void> _onSearch(
+    SearchBooksEvent event,
+    Emitter<BooksListState> emit,
+  ) async {
+    final effectiveQuery = event.query.trim().isEmpty
+        ? ApiConstants.defaultSearch
+        : event.query.trim();
 
     if (effectiveQuery == _query) return;
 
     _query = effectiveQuery;
-    loadBooks(reset: true);
+    await _onLoadBooks(LoadBooksEvent(reset: true), emit);
   }
 
-  Future<void> refresh() async {
-    await loadBooks(reset: true);
+  Future<void> _onRefresh(
+    RefreshBooksEvent event,
+    Emitter<BooksListState> emit,
+  ) async {
+    await _onLoadBooks(LoadBooksEvent(reset: true), emit);
+  }
+
+  @override
+  Future<void> close() {
+    _localeSubscription.cancel();
+    return super.close();
   }
 }

@@ -1,22 +1,65 @@
 import 'dart:io';
 import 'package:book_store/core/constants/values_manager.dart';
 import 'package:book_store/core/constants/font_manger.dart';
-import 'package:book_store/features/images_picker/presentation/providers/storage_view_model_providers.dart';
+import 'package:book_store/features/images_picker/domain/usecases/upload_multiple_images_usecase.dart';
+import 'package:book_store/features/images_picker/presentation/view_models/upload_view_model.dart';
+import 'package:book_store/features/images_picker/presentation/view_models/upload_event.dart';
+import 'package:book_store/features/images_picker/presentation/model/upload_state.dart';
 import 'package:book_store/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
-class UploadImagesScreen extends ConsumerWidget {
+import 'package:book_store/features/images_picker/data/datasources/remote_storage_datasource.dart';
+import 'package:book_store/features/images_picker/data/repositories/storage_repository_impl.dart';
+import 'package:book_store/features/images_picker/domain/repositories/storage_repository.dart';
+
+class UploadImagesScreen extends StatelessWidget {
   const UploadImagesScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final uploadState = ref.watch(uploadViewModelProvider);
-    final notifier = ref.read(uploadViewModelProvider.notifier);
+  Widget build(BuildContext context) {
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<IRemoteStorageDataSource>(
+          create: (_) => RemoteStorageDatasource(),
+        ),
+        RepositoryProvider<StorageRepository>(
+          create: (context) =>
+              StorageRepositoryImpl(context.read<IRemoteStorageDataSource>()),
+        ),
+        RepositoryProvider<UploadMultipleImagesUseCase>(
+          create: (context) =>
+              UploadMultipleImagesUseCase(context.read<StorageRepository>()),
+        ),
+      ],
+      child: BlocProvider(
+        create: (context) =>
+            UploadViewModel(context.read<UploadMultipleImagesUseCase>()),
+        child: const _UploadImagesContent(),
+      ),
+    );
+  }
+}
+
+class _UploadImagesContent extends StatelessWidget {
+  const _UploadImagesContent();
+
+  @override
+  Widget build(BuildContext context) {
+    final uploadState = context.watch<UploadViewModel>().state;
+    final bloc = context.read<UploadViewModel>();
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
+    return BlocListener<UploadViewModel, UploadState>(
+      listenWhen: (previous, current) => current.isUploadSuccess && !previous.isUploadSuccess,
+      listener: (context, state) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.uploadComplete)),
+        );
+        Navigator.pop(context);
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: Text(l10n.newUpload),
         actions: [
@@ -31,7 +74,7 @@ class UploadImagesScreen extends ConsumerWidget {
                       final files = pickedFiles
                           .map((xFile) => File(xFile.path))
                           .toList();
-                      notifier.addFiles(files);
+                      bloc.add(AddFilesEvent(files));
                     }
                   },
           ),
@@ -45,7 +88,7 @@ class UploadImagesScreen extends ConsumerWidget {
                       source: ImageSource.camera,
                     );
                     if (pickedFile != null) {
-                      notifier.addFile(File(pickedFile.path));
+                      bloc.add(AddFileEvent(File(pickedFile.path)));
                     }
                   },
           ),
@@ -85,7 +128,7 @@ class UploadImagesScreen extends ConsumerWidget {
                                   color: Colors.white,
                                   size: AppSize.s32,
                                 ),
-                                onPressed: () => notifier.removeLocalFile(file),
+                                onPressed: () => bloc.add(RemoveLocalFileEvent(file)),
                               ),
                             ),
                         ],
@@ -102,17 +145,8 @@ class UploadImagesScreen extends ConsumerWidget {
                       child: ElevatedButton(
                         onPressed: uploadState.isUploading
                             ? null
-                            : () async {
-                                final success = await notifier
-                                    .uploadAllSelected();
-                                if (success && context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(l10n.uploadComplete),
-                                    ),
-                                  );
-                                  Navigator.pop(context);
-                                }
+                            : () {
+                                bloc.add(UploadAllSelectedEvent());
                               },
                         child: uploadState.isUploading
                             ? const CircularProgressIndicator(
@@ -128,6 +162,7 @@ class UploadImagesScreen extends ConsumerWidget {
                 ),
               ],
             ),
+    ),
     );
   }
 }
