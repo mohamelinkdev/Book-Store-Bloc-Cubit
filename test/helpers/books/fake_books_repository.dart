@@ -11,7 +11,11 @@ class FakeBooksRepository implements BooksRepositoryBase {
   final List<Book> _bookmarks;
 
   @override
-  Future<List<Book>> getBooks({required String query, required int page}) async {
+  Future<List<Book>> getBooks({
+    required String query,
+    required int page,
+    String? lang,
+  }) async {
     if (onGetBooks != null) {
       return onGetBooks!(query, page);
     }

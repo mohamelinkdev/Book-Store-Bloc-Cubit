@@ -3,51 +3,46 @@ import 'package:book_store/core/theme/app_colors.dart';
 import 'package:book_store/features/auth/presentation/screens/login_screen.dart';
 import 'package:book_store/features/home/presentation/screens/home_screen.dart';
 import 'package:book_store/features/splash/model/splash_state.dart';
-import 'package:book_store/features/splash/providers/splash_view_model_provider.dart';
+import 'package:book_store/features/splash/splash_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class SplashScreen extends ConsumerStatefulWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  ConsumerState<SplashScreen> createState() => _SplashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends ConsumerState<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-
-    Future.microtask(() {
-      ref.read(splashViewModelProvider.notifier).checkAuth();
-    });
-  }
-
+class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
-    ref.listen<SplashStatus>(splashViewModelProvider, (previous, next) {
-      if (next == SplashStatus.authenticated) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => HomeScreen()),
-        );
-      } else if (next == SplashStatus.unauthenticated) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => LoginScreen()),
-        );
-      }
-    });
-
-    return Scaffold(
-      backgroundColor: AppColors.primary,
-      body: Center(
-        child: Image.asset(
-          AppAssets.bookIcon,
-          height: 100,
-          width: 100,
-          color: Colors.white,
+    return BlocProvider(
+      create: (context) => SplashViewModel()..checkAuth(),
+      child: BlocListener<SplashViewModel, SplashStatus>(
+        listener: (context, state) {
+          if (state == SplashStatus.authenticated) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const HomeScreen()),
+            );
+          } else if (state == SplashStatus.unauthenticated) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const LoginScreen()),
+            );
+          }
+        },
+        child: Scaffold(
+          backgroundColor: AppColors.primary,
+          body: Center(
+            child: Image.asset(
+              AppAssets.bookIcon,
+              height: 100,
+              width: 100,
+              color: Colors.white,
+            ),
+          ),
         ),
       ),
     );

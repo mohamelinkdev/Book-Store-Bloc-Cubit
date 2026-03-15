@@ -1,17 +1,20 @@
 import 'package:book_store/features/books/data/model/book.dart';
 import 'package:book_store/features/books/data/repository/books_repository.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class MarkedBooksViewModel extends Notifier<List<Book>> {
-  @override
-  List<Book> build() {
-    final repo = BooksRepository();
-    return repo.getBookmarks();
+class BooksBookMarkedViewModel extends Cubit<List<Book>> {
+  final BooksRepositoryBase _repository;
+
+  BooksBookMarkedViewModel(this._repository) : super([]) {
+    _loadBookmarks();
   }
 
-  void toggle(Book book) async {
-    final repo = BooksRepository();
-    await repo.toggleBookmark(book);
-    state = repo.getBookmarks();
+  void _loadBookmarks() {
+    emit(_repository.getBookmarks());
+  }
+
+  Future<void> toggle(Book book) async {
+    await _repository.toggleBookmark(book);
+    _loadBookmarks();
   }
 }

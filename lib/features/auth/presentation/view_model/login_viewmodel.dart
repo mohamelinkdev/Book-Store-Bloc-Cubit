@@ -1,26 +1,23 @@
 import 'package:book_store/features/auth/presentation/models/login_state.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/auth_repository.dart';
 
-class LoginViewModel extends Notifier<LoginState> {
-  final AuthRepository _repository = AuthRepository();
+class LoginViewModel extends Cubit<LoginState> {
+  final AuthRepository _repository;
 
-  @override
-  LoginState build() {
-    return LoginState();
-  }
+  LoginViewModel(this._repository) : super(LoginState());
 
   Future<void> login(String email, String password) async {
-    state = LoginState(isLoading: true);
+    emit(LoginState(isLoading: true));
 
     try {
       await _repository.login(email: email, password: password);
-      state = LoginState(isSuccess: true);
+      emit(LoginState(isSuccess: true));
     } on FirebaseAuthException catch (e) {
-      state = LoginState(errorMessage: e.message);
+      emit(LoginState(errorMessage: e.message));
     } catch (e) {
-      state = LoginState(errorMessage: 'Something went wrong');
+      emit(LoginState(errorMessage: 'Something went wrong'));
     }
   }
 }

@@ -1,24 +1,37 @@
 import 'package:book_store/core/constants/values_manager.dart';
-import 'package:book_store/features/images_picker/presentation/providers/storage_view_model_providers.dart';
+import 'package:book_store/features/images_picker/domain/entities/uploaded_image.dart';
+import 'package:book_store/features/images_picker/domain/usecases/get_image_history_usecase.dart';
 import 'package:book_store/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'upload_images_screen.dart';
 
-class ImageHistoryScreen extends ConsumerWidget {
+class ImageHistoryScreen extends StatelessWidget {
   const ImageHistoryScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final historyAsyncValue = ref.watch(imageHistoryStreamProvider);
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final getImageHistoryUseCase = context.read<GetImageHistoryUseCase>();
 
     return Scaffold(
-      body: historyAsyncValue.when(
-        data: (images) {
+      body: StreamBuilder<List<UploadedImage>>(
+        stream: getImageHistoryUseCase.execute(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text(l10n.errorLoadingHistory));
+          }
+
+          final images = snapshot.data ?? [];
+
           if (images.isEmpty) {
             return Center(child: Text(l10n.noImagesFoundInHistory));
           }
+
           return GridView.builder(
             padding: const EdgeInsets.all(AppPadding.p8),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -54,15 +67,15 @@ class ImageHistoryScreen extends ConsumerWidget {
             },
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) => Center(child: Text(l10n.errorLoadingHistory)),
       ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const UploadImagesScreen()),
+            MaterialPageRoute(
+              builder: (context) => const UploadImagesScreen(),
+            ),
           );
         },
       ),

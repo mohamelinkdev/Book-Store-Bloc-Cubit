@@ -1,26 +1,32 @@
-import 'package:book_store/core/theme/theme_mode_provider.dart';
-import 'package:book_store/core/localization/locale_provider.dart';
+import 'package:book_store/core/theme/theme_mode_view_model.dart';
+import 'package:book_store/core/localization/locale_view_model.dart';
+import 'package:book_store/features/books/data/repository/books_repository.dart';
+import 'package:book_store/features/books/presentation/view_model/book_list_viewmodel.dart';
+import 'package:book_store/features/images_picker/data/datasources/remote_storage_datasource.dart';
+import 'package:book_store/features/images_picker/data/repositories/storage_repository_impl.dart';
+import 'package:book_store/features/images_picker/domain/repositories/storage_repository.dart';
+import 'package:book_store/features/images_picker/domain/usecases/get_image_history_usecase.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:book_store/features/books/presentation/screens/bookmark_screen.dart';
 import 'package:book_store/features/books/presentation/screens/books_list_screen.dart';
 import 'package:book_store/features/images_picker/presentation/screens/image_history_screen.dart';
 import 'package:book_store/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class HomeScreen extends ConsumerStatefulWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
 
   final _pages = const [BooksScreen(), BookMarkScreen(), ImageHistoryScreen()];
 
   void _toggleThemeMode() {
-    ref.read(themeModeProvider.notifier).toggle();
+    context.read<ThemeModeViewModel>().toggle();
   }
 
   IconData _themeIcon(ThemeMode mode) {
@@ -33,8 +39,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = ref.watch(themeModeProvider);
-    final currentLocale = ref.watch(localeProvider);
+    final themeMode = context.watch<ThemeModeViewModel>().state;
+    final currentLocale = context.watch<LocaleViewModel>().state;
     final l10n = AppLocalizations.of(context)!;
 
     String getAppBarTitle(int index) {
@@ -50,51 +56,77 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       }
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(getAppBarTitle(_index)),
-        actions: [
-          TextButton(
-            onPressed: () {
-              ref.read(localeProvider.notifier).toggleLocale();
-            },
-            child: Text(
-              currentLocale.languageCode == 'en' ? 'AR' : 'EN',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<IRemoteStorageDataSource>(
+          create: (_) => RemoteStorageDatasource(),
+        ),
+        RepositoryProvider<StorageRepository>(
+          create: (context) =>
+              StorageRepositoryImpl(context.read<IRemoteStorageDataSource>()),
+        ),
+        RepositoryProvider<GetImageHistoryUseCase>(
+          create: (context) =>
+              GetImageHistoryUseCase(context.read<StorageRepository>()),
+        ),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (context) =>
+                BookListViewModel(
+                  context.read<BooksRepositoryBase>(),
+                  context.read<LocaleViewModel>(),
+                ),
+          ),
+        ],
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(getAppBarTitle(_index)),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  context.read<LocaleViewModel>().toggleLocale();
+                },
+                child: Text(
+                  currentLocale.languageCode == 'en' ? 'AR' : 'EN',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
               ),
-            ),
+              IconButton(
+                icon: Icon(_themeIcon(themeMode)),
+                onPressed: _toggleThemeMode,
+              ),
+            ],
           ),
-          IconButton(
-            icon: Icon(_themeIcon(themeMode)),
-            onPressed: _toggleThemeMode,
+          body: IndexedStack(index: _index, children: _pages),
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: _index,
+            onDestinationSelected: (value) {
+              setState(() => _index = value);
+            },
+            destinations: [
+              NavigationDestination(
+                icon: const Icon(Icons.menu_book_outlined),
+                selectedIcon: const Icon(Icons.menu_book),
+                label: l10n.books,
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.bookmark_border),
+                selectedIcon: const Icon(Icons.bookmark),
+                label: l10n.bookmarks,
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.photo_library_outlined),
+                selectedIcon: const Icon(Icons.photo_library),
+                label: l10n.imageHistory,
+              ),
+            ],
           ),
-        ],
-      ),
-      body: IndexedStack(index: _index, children: _pages),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (value) {
-          setState(() => _index = value);
-        },
-        destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.menu_book_outlined),
-            selectedIcon: const Icon(Icons.menu_book),
-            label: l10n.books,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.bookmark_border),
-            selectedIcon: const Icon(Icons.bookmark),
-            label: l10n.bookmarks,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.photo_library_outlined),
-            selectedIcon: const Icon(Icons.photo_library),
-            label: l10n.imageHistory,
-          ),
-        ],
+        ),
       ),
     );
   }
